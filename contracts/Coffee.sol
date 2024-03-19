@@ -55,11 +55,13 @@ contract CoffeeToken is ERC20 {
             token.safeTransferFrom(msg.sender, address(this), neededSum);
             // Mint CoffeeToken to msg sender
             _mint(msg.sender, neededSum);
+            neededSum = 0;
         }
         else {
             token.safeTransferFrom(msg.sender, address(this), _amount);
             // Mint CoffeeToken to msg sender
             _mint(msg.sender, _amount);
+            neededSum = neededSum - _amount;
         }
     }
 

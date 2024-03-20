@@ -18,8 +18,6 @@ contract CoffeeToken is ERC20 {
     // CoffeeShop gets "total supply" of tokens
     // When they sell all tokens - magic hapens and token unlocks
     // (Since that means that the shop achieved the needed funding)
-    string private _name;
-    string private _symbol;
     uint8 private _decimals;
     // The token that we accept as the currency
     IERC20 public token;
@@ -31,8 +29,6 @@ contract CoffeeToken is ERC20 {
       uint256 neededSum_,
       address token_) 
       ERC20(name_, symbol_) {
-        _name = name_;
-        _symbol = symbol_;
         _decimals = 18;
         // The token to accept as currency
         // No liquidity though, sorry
@@ -42,34 +38,34 @@ contract CoffeeToken is ERC20 {
 
     function balance() public view returns (uint256) {
         // How much FakeEthers do we alredy have?
-        return token.balanceOf(address(this));
+        return neededSum;
     }
 
-    function deposit(uint256 _amount) public {
+    function deposit(address consumer, uint256 _amount) public {
         // Amount must be greater than zero
         require(_amount > 0, "Amount cannot be 0");
 
         // Transfer FakeEth to smart contract
         // If try to send more than we need - don't transfer -_-
         if (neededSum < _amount) {
-            token.safeTransferFrom(msg.sender, address(this), neededSum);
+            token.safeTransferFrom(consumer, address(this), neededSum);
             // Mint CoffeeToken to msg sender
-            _mint(msg.sender, neededSum);
+            _mint(consumer, neededSum);
             neededSum = 0;
         }
         else {
-            token.safeTransferFrom(msg.sender, address(this), _amount);
+            token.safeTransferFrom(consumer, address(this), _amount);
             // Mint CoffeeToken to msg sender
-            _mint(msg.sender, _amount);
+            _mint(consumer, _amount);
             neededSum = neededSum - _amount;
         }
     }
 
-    function withdraw(uint256 _amount) public {
+    function withdraw(address consumer, uint256 _amount) public {
         // If we didn't collect the needed sum - you can't sell tokens
         require(neededSum == 0, "The funding is still in progress");
         // Burn CoffeeToken from msg sender
-        _burn(msg.sender, _amount);
+        _burn(consumer, _amount);
 
         // Technically, we usually return Ethereum back
         // But in this task we give them real coffee instead (stonks)
@@ -82,6 +78,7 @@ contract CoffeeToken is ERC20 {
 // So we actually have to call this function
 // Taken mostly from here: https://habr.com/ru/articles/714938/
 contract CoffeeFactory {
+    CoffeeToken coffeeToken;
 
     event tokenCreated(address tokenAddress);
 
@@ -90,16 +87,16 @@ contract CoffeeFactory {
             string calldata symbol,
             uint256 totalSupply,
             address _token // That we will accept as the currency
-        ) external returns (address) {
-            CoffeeToken token = new CoffeeToken(
+        ) external returns (CoffeeToken){
+            coffeeToken = new CoffeeToken(
                 name,
                 symbol,
                 totalSupply,
                 _token // Originally they used "msg.sender", but we specify the token in this way
             );
       
-            emit tokenCreated(address(token));
-
-            return address(token);
+            emit tokenCreated(address(coffeeToken));
+            // return token;
+            return coffeeToken;
         }
 }

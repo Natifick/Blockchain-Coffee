@@ -69,7 +69,7 @@ contract CoffeeToken is ERC20, ERC20Permit {
         // If we didn't collect the needed sum - you can't sell tokens
         require(neededSum == 0, "The funding is still in progress");
         // require that we have something to burn
-        require(balanceOf(msg.sender) > _amount, "You have not enough tokens");
+        require(balanceOf(msg.sender) >= _amount, "You have not enough tokens");
         // Burn CoffeeToken from msg sender
         _burn(msg.sender, _amount);
 

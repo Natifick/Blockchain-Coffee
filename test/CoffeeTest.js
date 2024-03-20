@@ -93,9 +93,12 @@ describe("Testing Cofee Crowdfunding", function () {
     await coffeeToken.connect(donor1).deposit(10);
     await fakeCurrencyToken.connect(donor2).approve(coffeeToken, 15);
     await coffeeToken.connect(donor2).deposit(15);
+    
     // quick test
     await coffeeToken.connect(donor1).withdraw(10);
     expect(await coffeeToken.balanceOf(donor1)).to.equal(0);
-    expect(coffeeToken.connect(donor2).withdraw(donor2, 3000)).to.be.reverted; // not so many coffe-tokens
+    
+    const cT = coffeeToken.connect(donor2)
+    expect(cT.withdraw(donor2, 3000)).to.be.reverted; // not so many coffe-tokens
   })
 })

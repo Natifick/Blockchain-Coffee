@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 // Just to use console.log
 // import "hardhat/console.sol";
 
-contract CoffeeToken is ERC20 {
+contract CoffeeToken is ERC20, ERC20Permit {
     using Address for address;
     using SafeERC20 for IERC20;
     // We'll work in following way:
@@ -28,12 +28,13 @@ contract CoffeeToken is ERC20 {
       string memory name_,
       string memory symbol_,
       uint256 neededSum_,
-      address token_) 
-      ERC20(name_, symbol_) {
+      IERC20 token_) 
+      ERC20(name_, symbol_)
+      ERC20Permit(name_) {
         _decimals = 18;
         // The token to accept as currency
         // No liquidity though, sorry
-        token = IERC20(token_);
+        token = token_;
         neededSum = neededSum_;
     }
 
@@ -42,28 +43,29 @@ contract CoffeeToken is ERC20 {
         return token.balanceOf(address(this));
     }
 
-    function deposit(address consumer, uint256 _amount) public {
+    function deposit(uint256 _amount) public payable {
         // Amount must be greater than zero
         require(_amount > 0, "Amount cannot be 0");
+        // IERC20(msg.sender).approve(address(this), _amount);
 
         // Transfer FakeEth to smart contract
         // If try to send more than we need - don't transfer -_-
 
         if (neededSum < _amount) {
-            token.safeTransferFrom(consumer, address(this), neededSum);
+            token.safeTransferFrom(msg.sender, address(this), neededSum);
             // Mint CoffeeToken to msg sender
-            _mint(consumer, neededSum);
+            _mint(msg.sender, neededSum);
             neededSum = 0;
         }
         else {
-            token.safeTransferFrom(consumer, address(this), _amount);
+            token.safeTransferFrom(msg.sender, address(this), _amount);
             // Mint CoffeeToken to msg sender
-            _mint(consumer, _amount);
+            _mint(msg.sender, _amount);
             neededSum = neededSum - _amount;
         }
     }
 
-    function withdraw(address consumer, uint256 _amount) public {
+    function withdraw(address consumer, uint256 _amount) public payable {
         // If we didn't collect the needed sum - you can't sell tokens
         require(neededSum == 0, "The funding is still in progress");
         // Burn CoffeeToken from msg sender
@@ -88,7 +90,7 @@ contract CoffeeFactory {
             string calldata name,
             string calldata symbol,
             uint256 totalSupply,
-            address _token // That we will accept as the currency
+            ERC20 _token // That we will accept as the currency
         ) external returns (CoffeeToken){
             coffeeToken = new CoffeeToken(
                 name,

@@ -20,8 +20,6 @@ describe("Testing Cofee Crowdfunding", function () {
     await fakeCurrencyToken.connect(fakeCurrencyBank).mint(donor1.address, 10);
     await fakeCurrencyToken.connect(fakeCurrencyBank).mint(donor2.address, 20);
 
-    await fakeCurrencyToken.connect(coffeeShop);
-
     // 2. deploy crowdfunding contract for coffeShop with goal in this currency
     // (who owns this is a mystery no one should know)
     // const CoffeeFactory = await ethers.getContractFactory("CoffeeFactory");
@@ -39,7 +37,6 @@ describe("Testing Cofee Crowdfunding", function () {
 
     const CoffeeToken = await ethers.getContractFactory("CoffeeToken");
     const coffeeToken = await CoffeeToken.deploy("CoffeeToken", "CFT", 25, fakeCurrencyToken);
-    // console.log(coffeeToken);
 
     // A bit strange way for deployment of the token
     // const CoffeeToken = await ethers.getContractFactory("MyCoffeeToken");
@@ -57,6 +54,8 @@ describe("Testing Cofee Crowdfunding", function () {
     expect(await fakeCurrencyToken.balanceOf(coffeeShop.address)).to.equal(0)
 
     expect(await coffeeToken.balance()).to.equal(0);
+    expect(await coffeeToken.balanceOf(donor1.address)).to.equal(0);
+    expect(await coffeeToken.balanceOf(donor2.address)).to.equal(0);
   });
 
   it("Test 1: partial deposit", async function() {
@@ -84,6 +83,7 @@ describe("Testing Cofee Crowdfunding", function () {
 
     // check that 5 tokens returned to donor2
     expect(await fakeCurrencyToken.balanceOf(donor2.address)).to.equal(5);
+    expect(await coffeeToken.balance()).to.equal(25);
     expect(await coffeeToken.balance()).to.equal(25);
   })
 

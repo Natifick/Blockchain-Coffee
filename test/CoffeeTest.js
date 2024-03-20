@@ -38,7 +38,7 @@ describe("Testing Cofee Crowdfunding", function () {
     // console.log("swrrefs", coffeeToken);
 
     const CoffeeToken = await ethers.getContractFactory("CoffeeToken");
-    const coffeeToken = await CoffeeToken.deploy("CoffeeToken", "CFT", 25, coffeeShop.address);
+    const coffeeToken = await CoffeeToken.deploy("CoffeeToken", "CFT", 25, fakeCurrencyToken);
     // console.log(coffeeToken);
 
     // A bit strange way for deployment of the token
@@ -56,37 +56,43 @@ describe("Testing Cofee Crowdfunding", function () {
     expect(await fakeCurrencyToken.balanceOf(donor2.address)).to.equal(20)
     expect(await fakeCurrencyToken.balanceOf(coffeeShop.address)).to.equal(0)
 
-    expect(await coffeeToken.balance()).to.equal(25);
+    expect(await coffeeToken.balance()).to.equal(0);
   });
 
   it("Test 1: partial deposit", async function() {
     const {coffeeToken, fakeCurrencyToken, coffeeShop, donor1, donor2} = await deployFixture();
-    await coffeeToken.deposit(donor1.address, 10);
+    
+    await fakeCurrencyToken.connect(donor1).approve(coffeeToken, 10);
+    await coffeeToken.deposit(donor1, 10);
 
     // donor1 spent all fake currency
     expect(await fakeCurrencyToken.balanceOf(donor1.address)).to.equal(0);
-    // and recieved coffeTokens in exchange
+    // and recieved coffeeTokens in exchange
     expect(await coffeeToken.balanceOf(donor1.address)).to.equal(10);
     
-    expect(await coffeToken.balance()).to.equal(10);
-    expect(await coffeToken.withdraw(1)).to.be.reverted;
+    expect(await coffeeToken.balance()).to.equal(10);
+    expect(coffeeToken.withdraw(donor1, 1)).to.be.reverted;
   })
 
   it("Test 2: complete deposit", async function() {
-    const {coffeToken, fakeCurrencyToken, coffeeShop, donor1, donor2} = await deployFixture();
+    const {coffeeToken, fakeCurrencyToken, coffeeShop, donor1, donor2} = await deployFixture();
   
-    await coffeToken.connect(donor1.address).deposit(10);
-    await coffeToken.connect(donor2.address).deposit(20);
+    await fakeCurrencyToken.connect(donor1).approve(coffeeToken, 10);
+    await coffeeToken.deposit(donor1, 10);
+    await fakeCurrencyToken.connect(donor2).approve(coffeeToken, 20);
+    await coffeeToken.deposit(donor2, 20);
 
     // check that 5 tokens returned to donor2
     expect(await fakeCurrencyToken.balanceOf(donor2.address)).to.equal(5);
-    expect(await coffeToken.balance()).to.equal(25);
+    expect(await coffeeToken.balance()).to.equal(25);
   })
 
   it ("Test 3: withdraw coffee tokens for coffee", async function() {
-    const {coffeToken, fakeCurrencyToken, coffeeShop, donor1, donor2} = await deployFixture();
+    const {coffeeToken, fakeCurrencyToken, coffeeShop, donor1, donor2} = await deployFixture();
 
-    await coffeToken.connect(donor1).deposit(10);
-    await coffeToken.connect(donor2).deposit(15); 
+    await fakeCurrencyToken.connect(donor1).approve(coffeeToken, 10);
+    await coffeeToken.deposit(donor1, 10);
+    await fakeCurrencyToken.connect(donor2).approve(coffeeToken, 15);
+    await coffeeToken.deposit(donor2, 15);
   })
 })

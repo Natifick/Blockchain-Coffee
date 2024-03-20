@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -38,7 +39,7 @@ contract CoffeeToken is ERC20 {
 
     function balance() public view returns (uint256) {
         // How much FakeEthers do we alredy have?
-        return neededSum;
+        return token.balanceOf(address(this));
     }
 
     function deposit(address consumer, uint256 _amount) public {
@@ -47,6 +48,7 @@ contract CoffeeToken is ERC20 {
 
         // Transfer FakeEth to smart contract
         // If try to send more than we need - don't transfer -_-
+
         if (neededSum < _amount) {
             token.safeTransferFrom(consumer, address(this), neededSum);
             // Mint CoffeeToken to msg sender

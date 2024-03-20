@@ -64,12 +64,19 @@ describe("Testing Cofee Crowdfunding", function () {
     await fakeCurrencyToken.connect(donor1).approve(coffeeToken, 10);
     await coffeeToken.connect(donor1).deposit(10);
 
-    // donor1 spent all fake currency
+    // donor1 spent all fake currency, and it got to coffeeShop
     expect(await fakeCurrencyToken.balanceOf(donor1.address)).to.equal(0);
-    // and recieved coffeeTokens in exchange
+    
+    // and donor1 recieved coffeeTokens in exchange
     expect(await coffeeToken.balanceOf(donor1.address)).to.equal(10);
     
     expect(await coffeeToken.balance()).to.equal(10);
+    
+    // sanity check - since coffeShop is owner
+    // his balance equals to coffeeToken.balance() call result
+    expect(await fakeCurrencyToken.balanceOf(coffeeShop.address)).to.equal(10);
+    
+    // can't withdraw when goal is not met
     expect(coffeeToken.connect(donor1).withdraw(1)).to.be.reverted;
   })
 
@@ -83,6 +90,8 @@ describe("Testing Cofee Crowdfunding", function () {
 
     // check that 5 tokens returned to donor2
     expect(await fakeCurrencyToken.balanceOf(donor2.address)).to.equal(5);
+    
+    // and balance is equal to goal
     expect(await coffeeToken.balance()).to.equal(25);
   })
 
@@ -93,12 +102,43 @@ describe("Testing Cofee Crowdfunding", function () {
     await coffeeToken.connect(donor1).deposit(10);
     await fakeCurrencyToken.connect(donor2).approve(coffeeToken, 15);
     await coffeeToken.connect(donor2).deposit(15);
+
+    await coffeeToken.connect(coffeeShop).unlock(); // shop owner opens shop
     
-    // quick test
     await coffeeToken.connect(donor1).withdraw(10);
+
+    // check  that donor1 used all of his coffee-tokens
     expect(await coffeeToken.balanceOf(donor1)).to.equal(0);
     
-    const cT = coffeeToken.connect(donor2)
-    expect(cT.withdraw(donor2, 3000)).to.be.reverted; // not so many coffe-tokens
+    // donor2 can't use more coffe-tokens that he has
+    expect(coffeeToken.connect(donor2).withdraw(donor2, 3000)).to.be.reverted; 
+  })
+
+  it ("Test 4: events - fundingFinised and shopOpened", async function() {
+    const {coffeeToken, fakeCurrencyToken, coffeeShop, donor1, donor2} = await deployFixture();
+  
+    // can't unlock unless goal is met
+    expect(coffeeToken.connect(coffeeShop).unlock()).to.be.reverted;
+
+    await fakeCurrencyToken.connect(donor1).approve(coffeeToken, 10);
+    await coffeeToken.connect(donor1).deposit(10);
+    await fakeCurrencyToken.connect(donor2).approve(coffeeToken, 15);
+    
+    // event emmited once the funding is finihsed
+    await expect(coffeeToken.connect(donor2).deposit(15)).to.emit(
+      coffeeToken,
+      "fundingFinished"
+    );
+
+    // can't withdraw before opeining shop 
+    expect(coffeeToken.connect(donor1).withdraw(1)).to.be.reverted;
+
+    // catch the according event (hypotheticallt users can do that)
+    await expect(coffeeToken.connect(coffeeShop).unlock()).to.emit(
+      coffeeToken,
+      "shopOpened"
+    );
+
+    expect(coffeeToken.connect(donor1).withdraw(1)).to.not.be.reverted;
   })
 })

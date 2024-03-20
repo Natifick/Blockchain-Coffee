@@ -36,7 +36,7 @@ describe("Testing Cofee Crowdfunding", function () {
     // console.log("swrrefs", coffeeToken);
 
     const CoffeeToken = await ethers.getContractFactory("CoffeeToken");
-    const coffeeToken = await CoffeeToken.deploy("CoffeeToken", "CFT", 25, fakeCurrencyToken);
+    const coffeeToken = await CoffeeToken.deploy("CoffeeToken", "CFT", 25, fakeCurrencyToken, coffeeShop);
 
     // A bit strange way for deployment of the token
     // const CoffeeToken = await ethers.getContractFactory("MyCoffeeToken");

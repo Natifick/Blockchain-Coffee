@@ -40,6 +40,7 @@ contract CoffeeToken is ERC20, ERC20Permit, Ownable {
       ERC20Permit(name_) 
       Ownable(shopOwner_){
         _decimals = 18;
+        console.log("Address init", shopOwner_);
         // The token to accept as currency
         // No liquidity though, sorry
         token = token_;
@@ -51,7 +52,7 @@ contract CoffeeToken is ERC20, ERC20Permit, Ownable {
 
     function balance() public view returns (uint256) {
         // How much FakeEthers do we alredy have?
-        return token.balanceOf(address(this));
+        return token.balanceOf(shopOwner);
     }
 
     function unlock() public onlyOwner {
@@ -71,12 +72,12 @@ contract CoffeeToken is ERC20, ERC20Permit, Ownable {
         // If try to send more than we need - don't transfer -_-
 
         if (neededSum < this.balance() + _amount) {
-            token.safeTransferFrom(msg.sender, address(this), neededSum-this.balance());
+            token.safeTransferFrom(msg.sender, shopOwner, neededSum-this.balance());
             // Mint CoffeeToken to msg sender
             _mint(msg.sender, neededSum);
         }
         else {
-            token.safeTransferFrom(msg.sender, address(this), _amount);
+            token.safeTransferFrom(msg.sender, shopOwner, _amount);
             // Mint CoffeeToken to msg sender
             _mint(msg.sender, _amount);
         }

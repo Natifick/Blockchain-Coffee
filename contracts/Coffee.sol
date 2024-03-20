@@ -65,11 +65,13 @@ contract CoffeeToken is ERC20, ERC20Permit {
         }
     }
 
-    function withdraw(address consumer, uint256 _amount) public payable {
+    function withdraw(uint256 _amount) public payable {
         // If we didn't collect the needed sum - you can't sell tokens
         require(neededSum == 0, "The funding is still in progress");
+        // require that we have something to burn
+        require(balanceOf(msg.sender) > _amount, "You have not enough tokens");
         // Burn CoffeeToken from msg sender
-        _burn(consumer, _amount);
+        _burn(msg.sender, _amount);
 
         // Technically, we usually return Ethereum back
         // But in this task we give them real coffee instead (stonks)

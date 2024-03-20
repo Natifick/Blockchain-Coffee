@@ -93,5 +93,7 @@ describe("Testing Cofee Crowdfunding", function () {
     await coffeeToken.connect(donor1).deposit(10);
     await fakeCurrencyToken.connect(donor2).approve(coffeeToken, 15);
     await coffeeToken.connect(donor2).deposit(15);
+    // quick test
+    await coffeeToken.connect(donor2).withdraw(10);
   })
 })

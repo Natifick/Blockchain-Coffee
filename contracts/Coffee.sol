@@ -90,7 +90,7 @@ contract CoffeeToken is ERC20, ERC20Permit, Ownable {
         // If we didn't collect the needed sum - you can't sell tokens
         require(this.balance()==neededSum, "The funding is still in progress");
         // require that we have something to burn
-        require(balanceOf(msg.sender) > _amount, "You have not enough tokens");
+        require(balanceOf(msg.sender) >= _amount, "You have not enough tokens");
         // What if the shop is not active yet?
         require(_isUnlocked, "The shop is not opened yet");
         // Burn CoffeeToken from msg sender
